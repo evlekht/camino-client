@@ -12,6 +12,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/formatting"
 	"github.com/ava-labs/avalanchego/utils/formatting/address"
 	"github.com/ava-labs/avalanchego/utils/hashing"
+	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 )
 
@@ -168,4 +169,26 @@ func (u *UtilsWithLogger) DecodeHexString(str string, avax bool) (decodedBytes [
 		u.logger.Error(err)
 	}
 	return decodedBytes, err
+}
+
+func (u *UtilsWithLogger) ID(idStr string) ids.ID {
+	id, err := ids.FromString(idStr)
+	u.logger.NoError(err)
+	return id
+}
+
+func (u *UtilsWithLogger) PrivateKey(keyStr string) *avax_secp256k1.PrivateKey {
+	key := new(avax_secp256k1.PrivateKey)
+	if err := key.UnmarshalText([]byte("\"" + keyStr + "\"")); err != nil {
+		u.logger.NoError(err)
+	}
+	return key
+}
+
+func (u *UtilsWithLogger) PTX(txBytesStr string) *txs.Tx {
+	txBytes, err := u.DecodeHexString(txBytesStr, true)
+	u.logger.NoError(err)
+	tx, err := txs.Parse(txs.Codec, txBytes)
+	u.logger.NoError(err)
+	return tx
 }

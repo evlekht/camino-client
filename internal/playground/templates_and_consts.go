@@ -1,9 +1,8 @@
 package playground
 
 import (
-	"caminoclient/internal/creator"
-	"caminoclient/internal/issuer"
 	"caminoclient/internal/logger"
+	"caminoclient/internal/node"
 
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 )
@@ -22,12 +21,17 @@ const (
 
 	// 6Y3kysjF9jnHnYkdS9yGAuoHyae2eNmeV : P-kopernikus18jma8ppw3nhx5r4ap8clazz0dps7rv5uuvjh68
 	localValidator1KeyStr = "\"PrivateKey-ewoqjP7PxY4yr3iLTpLisriqt94hdyDFNgchSxGGztUrTXtNN\""
+
+	//  : P-kopernikus1ftrh6sly2fh4k8rz4wwp60jj4dfdtg2xv3unrj
+	//  : P-columbus1ftrh6sly2fh4k8rz4wwp60jj4dfdtg2xxkj3e0
+	evgeniiTestKeyStr = "\"PrivateKey-2bMrxpyN24b6BsiTjRDw3h7w7nC75ecZ5vkSyrDksxthvxXQ8o\""
 )
 
 var (
 	caminoFeeKey       *secp256k1.PrivateKey
 	localValidator0Key *secp256k1.PrivateKey
 	localValidator1Key *secp256k1.PrivateKey
+	evgeniiTestKey     *secp256k1.PrivateKey
 )
 
 func init() {
@@ -43,86 +47,46 @@ func init() {
 	if err := localValidator1Key.UnmarshalText([]byte(localValidator1KeyStr)); err != nil {
 		panic(err)
 	}
+	evgeniiTestKey = new(secp256k1.PrivateKey)
+	if err := evgeniiTestKey.UnmarshalText([]byte(evgeniiTestKeyStr)); err != nil {
+		panic(err)
+	}
 }
 
-// TxCreator
+// Node
 
-func LocalTxCreator(logger logger.Logger) *creator.TxCreator {
-	txc, err := creator.NewTxCreator(
+func LocalClient(logger logger.Logger) *node.Client {
+	txc, err := node.NewClient(
 		localNode,
-		localValidator0Key,
 		logger,
 	)
 	logger.NoError(err)
 	return txc
 }
 
-func LocalKopernikusTxCreator(logger logger.Logger) *creator.TxCreator {
-	txc, err := creator.NewTxCreator(
-		localNode,
-		nil, // TODO@
-		// "\"PrivateKey-2dkKrzcDQ2JKxJw1M3W5Dc5QB2QinhgCBZqeSswZXgsTEsytar\"",
-		logger,
-	)
-	logger.NoError(err)
-	return txc
-}
-
-func LocalCaminoTxCreator(logger logger.Logger) *creator.TxCreator {
-	txc, err := creator.NewTxCreator(
-		localNode,
-		nil, // TODO@
-		// "\"PrivateKey-2dkKrzcDQ2JKxJw1M3W5Dc5QB2QinhgCBZqeSswZXgsTEsytar\"",
-		logger,
-	)
-	logger.NoError(err)
-	return txc
-}
-
-func KopernikusTxCreator(logger logger.Logger) *creator.TxCreator {
-	txc, err := creator.NewTxCreator(
+func KopernikusClient(logger logger.Logger) *node.Client {
+	txc, err := node.NewClient(
 		kopernikusNode,
-		nil, // TODO@
-		// "\"PrivateKey-2dkKrzcDQ2JKxJw1M3W5Dc5QB2QinhgCBZqeSswZXgsTEsytar\"",
 		logger,
 	)
 	logger.NoError(err)
 	return txc
 }
 
-func UnchainedTxCreator(logger logger.Logger) *creator.TxCreator {
-	txc, err := creator.NewTxCreator(
+func UnchainedClient(logger logger.Logger) *node.Client {
+	txc, err := node.NewClient(
 		unchainedNode,
-		localValidator0Key,
-		// "\"PrivateKey-2dkKrzcDQ2JKxJw1M3W5Dc5QB2QinhgCBZqeSswZXgsTEsytar\"",
 		logger,
 	)
 	logger.NoError(err)
 	return txc
 }
 
-// TxIssuer
-
-func UnchainedTxIssuer(logger logger.Logger) *issuer.TxIssuer {
-	txi, err := issuer.NewTxIssuer(unchainedNode, logger)
+func CaminoClient(logger logger.Logger) *node.Client {
+	txc, err := node.NewClient(
+		caminoNode,
+		logger,
+	)
 	logger.NoError(err)
-	return txi
-}
-
-func KopernikusTxIssuer(logger logger.Logger) *issuer.TxIssuer {
-	txi, err := issuer.NewTxIssuer(kopernikusNode, logger)
-	logger.NoError(err)
-	return txi
-}
-
-func CaminoTxIssuer(logger logger.Logger) *issuer.TxIssuer {
-	txi, err := issuer.NewTxIssuer(caminoNode, logger)
-	logger.NoError(err)
-	return txi
-}
-
-func LocalTxIssuer(logger logger.Logger) *issuer.TxIssuer {
-	txi, err := issuer.NewTxIssuer(localNode, logger)
-	logger.NoError(err)
-	return txi
+	return txc
 }
