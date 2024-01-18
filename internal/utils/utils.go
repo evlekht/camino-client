@@ -236,3 +236,9 @@ func (u *UtilsWithLogger) PTX(txBytesStr string) *txs.Tx {
 	u.logger.NoError(err)
 	return tx
 }
+
+func (u *UtilsWithLogger) KeyAddress(key *avax_secp256k1.PrivateKey) string {
+	addr, err := address.Format("P", constants.GetHRP(u.networkID), key.Address().Bytes())
+	u.logger.NoError(err)
+	return addr
+}

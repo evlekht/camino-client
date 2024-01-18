@@ -16,7 +16,7 @@ const (
 	// columbusNode   = ""
 	caminoNode = "https://api.camino.network"
 
-	matrixDebug  = "http://localhost:8008"
+	matrixDebug  = "http://localhost:6167"
 	matrixLocal  = "http://localhost:8008"
 	matrixC4T    = "https://matrix.chain4travel.com"
 	matrixCamino = "https://matrix.camino.network"
@@ -103,7 +103,7 @@ func CaminoClient(logger logger.Logger) *node.Client {
 // Matrix client
 
 func MatrixDebug(logger logger.Logger) *matrix.Client {
-	client, err := matrix.NewClient(matrixLocal, appServiceAccessToken, logger, constants.KopernikusID)
+	client, err := matrix.NewClient(matrixDebug, appServiceAccessToken, logger, constants.KopernikusID)
 	logger.NoError(err)
 	return client
 }

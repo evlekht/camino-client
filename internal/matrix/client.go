@@ -36,10 +36,23 @@ type Client struct {
 	utils                 *utils.UtilsWithLogger
 }
 
-func (c *Client) Login(key *secp256k1.PrivateKey) error {
+type identifier struct {
+	Type identifierType `json:"type"`
+	User string         `json:"user"`
+}
+
+type identifierType string
+
+const identifierTypeUserID identifierType = "m.id.user"
+
+type loginType string
+
+const loginTypeCamino = "m.login.camino"
+
+func (c *Client) Login(key *secp256k1.PrivateKey) (string, string, error) {
 	sessionID, payload, err := c.beginLogin(key)
 	if err != nil {
-		return err
+		return "", "", err
 	}
 	return c.login(sessionID, payload, key)
 }
@@ -52,9 +65,12 @@ func (c *Client) beginLogin(key *secp256k1.PrivateKey) (sessionID string, payloa
 	}
 
 	request := struct {
-		Username string `json:"username"`
+		Identifier identifier `json:"identifier"`
 	}{
-		Username: keyAddrStr,
+		Identifier: identifier{
+			Type: identifierTypeUserID,
+			User: keyAddrStr,
+		},
 	}
 
 	requestBody, err := json.Marshal(request)
@@ -92,100 +108,106 @@ func (c *Client) beginLogin(key *secp256k1.PrivateKey) (sessionID string, payloa
 	var response struct {
 		Session string `json:"session"`
 		Params  struct {
-			Payload string `json:"payload"`
+			Camino struct {
+				Payload string `json:"payload"`
+			} `json:"m.login.camino"`
 		} `json:"params"`
+		ErrCode string `json:"errcode"`
+		Error   string `json:"error"`
 	}
 	if err := json.Unmarshal(responseBody, &response); err != nil {
 		c.logger.Error(err)
 		return "", "", err
 	}
 
-	return response.Session, response.Params.Payload, nil
+	return response.Session, response.Params.Camino.Payload, nil
 }
 
-func (c *Client) login(sessionID, payload string, key *secp256k1.PrivateKey) error {
+func (c *Client) login(sessionID, payload string, key *secp256k1.PrivateKey) (string, string, error) {
 	signature, err := key.Sign([]byte(payload))
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 
 	encodedSignature, err := formatting.Encode(formatting.Hex, signature)
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 
 	keyAddrStr, err := address.Format("t", constants.GetHRP(c.networkID), key.Address().Bytes())
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
-
-	const caminoLoginType = "m.login.camino"
 
 	type auth struct {
-		Session   string `json:"session"`
-		Signature string `json:"signature"`
-		Type      string `json:"type"`
+		Session   string    `json:"session"`
+		Signature string    `json:"signature"`
+		Type      loginType `json:"type"`
 	}
-
 	request := struct {
-		Auth     auth   `json:"auth"`
-		Username string `json:"username"`
+		Identifier identifier `json:"identifier"`
+		Auth       auth       `json:"auth"`
 	}{
+		Identifier: identifier{
+			Type: identifierTypeUserID,
+			User: keyAddrStr,
+		},
 		Auth: auth{
 			Session:   sessionID,
-			Signature: encodedSignature,
-			Type:      caminoLoginType,
+			Signature: encodedSignature[2:],
+			Type:      loginTypeCamino,
 		},
-		Username: keyAddrStr,
 	}
 
 	requestBody, err := json.Marshal(request)
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 
 	url := fmt.Sprintf("%s/login", c.baseURL)
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(requestBody))
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 
 	var response struct {
-		Session string `json:"session"`
-		Params  struct {
-			Payload string `json:"payload"`
-		} `json:"params"`
+		UserID      string `json:"user_id"`
+		AccessToken string `json:"access_token"`
+		HomeServer  string `json:"home_server"`
+		DeviceID    string `json:"device_id"`
+		ErrCode     string `json:"errcode"`
+		Error       string `json:"error"`
 	}
 	if err := json.Unmarshal(responseBody, &response); err != nil {
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("login error: status %d, resp: %s", resp.StatusCode, responseBody)
 		c.logger.Error(err)
-		return err
+		return "", "", err
 	}
 
-	return nil
+	return response.AccessToken, response.DeviceID, nil
 }
 
 func (c *Client) CreateRoom() (string, error) {

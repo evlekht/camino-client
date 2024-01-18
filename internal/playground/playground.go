@@ -7,7 +7,9 @@ import (
 	"caminoclient/internal/node"
 	"caminoclient/internal/utils"
 	"context"
+	"fmt"
 
+	"github.com/ava-labs/avalanchego/snow"
 	"github.com/ava-labs/avalanchego/utils/constants"
 )
 
@@ -40,10 +42,14 @@ func (p *Playground) Run(ctx context.Context) error {
 	// for i := range keys {
 	// 	p.logger.Infof("key[%d]: %s", i, keys[i].String())
 	// 	p.logger.Infof("addr[%d]: %s", i, addresses[i])
-	// 	p.logger.NoError(matrix.Register(keys[i], false))
+	// 	p.logger.NoError(p.matrix.Register(keys[i], false))
 	// }
-	// key1, _, err := p.utils.ParseKey("\"PrivateKey-2vBHMSNNSEtgdcG2HqVUZvGw9E3VgGmwNBbCsGEGqj3zLmHa83\"")
+	// key := p.utils.PrivateKey("PrivateKey-2vBHMSNNSEtgdcG2HqVUZvGw9E3VgGmwNBbCsGEGqj3zLmHa83")
+	// p.logger.Infof("key: %s", key.String())
+	// p.logger.Infof("addr: %s", utils.UtilsNoLog.KeyAddress(key))
+	// accessToken, _, err := p.matrix.Login(key)
 	// p.logger.NoError(err)
+	// p.logger.Debugf("accessToken: %s", accessToken)
 	// key1 := localValidator0Key
 
 	// lockTx, err := creator.TLockTx(key1, 1000)
@@ -53,8 +59,10 @@ func (p *Playground) Run(ctx context.Context) error {
 	// time.Sleep(2 * time.Second)
 
 	// key2, _, err := p.utils.ParseKey("\"PrivateKey-6m47M9z8X5Dome27PjyXs5wXjKKLWNhvjEmNPgZVQH1XgQ1C5\"")
-	// key2, _, err := p.utils.GenerateKey(constants.KopernikusID, true)
+	// key, _, err := p.utils.GenerateKey(constants.KopernikusID, true)
 	// p.logger.NoError(err)
+	// p.logger.Infof("key: %s", key.String())
+	// p.logger.Infof("addr: %s", utils.UtilsNoLog.KeyAddress(key))
 	// key3, _, err := p.utils.ParseKey("\"PrivateKey-pVPb9P91E67ii2RHT9HWFTtJyNXZhHbzGMCmhcDrFqH4ehSfx\"")
 	// key3, _, err := p.utils.GenerateKey(constants.KopernikusID, true)
 	// p.logger.NoError(err)
@@ -76,8 +84,8 @@ func (p *Playground) Run(ctx context.Context) error {
 	// p.logger.NoError(matrix.SendMessageWithCheque(roomID, "hello", cheque))
 	// p.logger.NoError(p.matrix.Login(key1))
 
-	// tx := p.utils.PTX("0x000000002002000003ea00000000000000000000000000000000000000000000000000000000000000000000000259eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000000003b8b87c000000000000000000000000100000001312f06ca09361eb1699860f36f5ac0635afe8c5659eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a000020010000000000000000000000000000000000000000000000000000000000000000746869732074782069640000000000000000000000000000000000000000000000000007000001d1a94a200000000000000000000000000100000001312f06ca09361eb1699860f36f5ac0635afe8c5600000001b46a7d30a289585d845ee6a0e98be0764a0933674d7325ec298b6fcaf6b1bfd90000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000001d1e4d5a7c00000000100000000000000009766dbf732231be13e6913a8e0450b9b068659610000000065607c42000000006561cdb3000001d1a94a2000000000000000000b00000000000000000000000100000001312f06ca09361eb1699860f36f5ac0635afe8c56000000000000000a00000001000000000000000200000009000000010b94da4a088c203fa73ebc89d7fa157a87e62fc9ce1b5255bae59b16a7b33c9162ba3dffbe7a6ae6bbf5413be449df8e6394c96f1d82d4e449aa7f9b541709bf0000000009000000010b94da4a088c203fa73ebc89d7fa157a87e62fc9ce1b5255bae59b16a7b33c9162ba3dffbe7a6ae6bbf5413be449df8e6394c96f1d82d4e449aa7f9b541709bf00da7958fd")
-	// fmt.Println(tx.SyntacticVerify(snow.DefaultContextTest()))
+	tx := p.utils.PTX("0x000000002006000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000003a351fba9800000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b6600000001fb031c0f8d72aac496e29ae3800f4a892ccc7f22a74121e050a5fbf3c7d7d7d90000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000003a3520aebc0000000010000000000000000000000010000000900000001e44b0620da0250698d5cab96366e4a733f8e2cdd46a2d08a75f05c60e9d5c41a5749b5e0d66782fbac78027f1d2f6b700c90185b6c851fa0bde5488b635f3dec00ddea5f45")
+	fmt.Println(tx.SyntacticVerify(snow.DefaultContextTest()))
 	// tx, err := p.client.GetPTX(p.utils.ID("2NsoB8oNWJLAWPf629soQf8YkN351C79UbNVBreMTSMG8LC7eb"))
 	// p.logger.NoError(err)
 	// utx, ok := tx.Unsigned.(*txs.AddProposalTx)
