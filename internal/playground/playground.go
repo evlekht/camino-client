@@ -7,9 +7,7 @@ import (
 	"caminoclient/internal/node"
 	"caminoclient/internal/utils"
 	"context"
-	"fmt"
 
-	"github.com/ava-labs/avalanchego/snow"
 	"github.com/ava-labs/avalanchego/utils/constants"
 )
 
@@ -20,10 +18,10 @@ func NewPlayground(ctx context.Context, logger logger.Logger, cfg *config.Config
 		// creator: LocalClient(logger),
 		// issuer:  LocalClient(logger),
 		// client:  LocalClient(logger),
-		matrix: MatrixDebug(logger),
+		// matrix: MatrixDebug(logger),
 		// matrix: MatrixLocal(logger),
 		// matrix: MatrixCamino(logger),
-		// matrix: MatrixChain4Travel(logger),
+		matrix: MatrixChain4Travel(logger),
 	}, nil
 }
 
@@ -37,13 +35,13 @@ type Playground struct {
 }
 
 func (p *Playground) Run(ctx context.Context) error {
-	// keys, addresses, err := p.utils.ParseKeysFromFile("unchained")
-	// p.logger.NoError(err)
-	// for i := range keys {
-	// 	p.logger.Infof("key[%d]: %s", i, keys[i].String())
-	// 	p.logger.Infof("addr[%d]: %s", i, addresses[i])
-	// 	p.logger.NoError(p.matrix.Register(keys[i], false))
-	// }
+	keys, addresses, err := p.utils.ParseKeysFromFile("unchained")
+	p.logger.NoError(err)
+	for i := range keys {
+		p.logger.Infof("key[%d]: %s", i, keys[i].String())
+		p.logger.Infof("addr[%d]: %s", i, addresses[i])
+		p.logger.NoError(p.matrix.Register(keys[i], false))
+	}
 	// key := p.utils.PrivateKey("PrivateKey-2vBHMSNNSEtgdcG2HqVUZvGw9E3VgGmwNBbCsGEGqj3zLmHa83")
 	// p.logger.Infof("key: %s", key.String())
 	// p.logger.Infof("addr: %s", utils.UtilsNoLog.KeyAddress(key))
@@ -84,8 +82,8 @@ func (p *Playground) Run(ctx context.Context) error {
 	// p.logger.NoError(matrix.SendMessageWithCheque(roomID, "hello", cheque))
 	// p.logger.NoError(p.matrix.Login(key1))
 
-	tx := p.utils.PTX("0x000000002006000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000003a351fba9800000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b6600000001fb031c0f8d72aac496e29ae3800f4a892ccc7f22a74121e050a5fbf3c7d7d7d90000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000003a3520aebc0000000010000000000000000000000010000000900000001e44b0620da0250698d5cab96366e4a733f8e2cdd46a2d08a75f05c60e9d5c41a5749b5e0d66782fbac78027f1d2f6b700c90185b6c851fa0bde5488b635f3dec00ddea5f45")
-	fmt.Println(tx.SyntacticVerify(snow.DefaultContextTest()))
+	// tx := p.utils.PTX("0x000000002006000003ea00000000000000000000000000000000000000000000000000000000000000000000000159eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000007000003a351fba9800000000000000000000000010000000146a9c04f4bf783aa69daabd519dcf36978168b6600000001fb031c0f8d72aac496e29ae3800f4a892ccc7f22a74121e050a5fbf3c7d7d7d90000000059eb48b8b3a928ca9d6b90a0f3492ab47ebf06e9edc553cfb6bcd2d3f38e319a00000005000003a3520aebc0000000010000000000000000000000010000000900000001e44b0620da0250698d5cab96366e4a733f8e2cdd46a2d08a75f05c60e9d5c41a5749b5e0d66782fbac78027f1d2f6b700c90185b6c851fa0bde5488b635f3dec00ddea5f45")
+	// fmt.Println(tx.SyntacticVerify(snow.DefaultContextTest()))
 	// tx, err := p.client.GetPTX(p.utils.ID("2NsoB8oNWJLAWPf629soQf8YkN351C79UbNVBreMTSMG8LC7eb"))
 	// p.logger.NoError(err)
 	// utx, ok := tx.Unsigned.(*txs.AddProposalTx)

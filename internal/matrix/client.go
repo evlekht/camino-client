@@ -49,6 +49,127 @@ type loginType string
 
 const loginTypeCamino = "m.login.camino"
 
+func (c *Client) Register(key *secp256k1.PrivateKey, login bool) error {
+	sessionID, err := c.beginRegistration()
+	if err != nil {
+		return err
+	}
+	return c.register(sessionID, key, login)
+}
+
+func (c *Client) beginRegistration() (string, error) {
+	url := fmt.Sprintf("%s/register?kind=user", c.baseURL)
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBufferString("{}"))
+	if err != nil {
+		c.logger.Error(err)
+		return "", err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.Error(err)
+		return "", err
+	}
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.logger.Error(err)
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusUnauthorized {
+		err := fmt.Errorf("beginRegistration error: status %d, resp: %s", resp.StatusCode, responseBody)
+		c.logger.Error(err)
+		return "", err
+	}
+
+	var response struct {
+		Session string `json:"session"`
+	}
+	if err := json.Unmarshal(responseBody, &response); err != nil {
+		c.logger.Error(err)
+		return "", err
+	}
+
+	return response.Session, nil
+}
+
+func (c *Client) register(sessionID string, key *secp256k1.PrivateKey, login bool) error {
+	signature, message, err := c.utils.SignPublicKey(key, true)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+
+	keyAddrStr, err := address.Format("t", constants.GetHRP(c.networkID), key.Address().Bytes())
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+
+	const caminoLoginType = "m.login.camino"
+
+	type threepidCreds struct {
+		Address  string `json:"address"`
+		Password string `json:"password"`
+	}
+	type auth struct {
+		ThreepidCreds threepidCreds `json:"threepid_creds"`
+		Session       string        `json:"session"`
+		Type          string        `json:"type"`
+	}
+
+	request := struct {
+		Auth     auth   `json:"auth"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{
+		Auth: auth{
+			ThreepidCreds: threepidCreds{
+				Address:  message,
+				Password: signature,
+			},
+			Session: sessionID,
+			Type:    caminoLoginType,
+		},
+		Username: keyAddrStr,
+		Password: " ",
+	}
+
+	requestBody, err := json.Marshal(request)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+
+	url := fmt.Sprintf("%s/register?kind=user", c.baseURL)
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err := fmt.Errorf("register error: status %d, resp: %s", resp.StatusCode, responseBody)
+		c.logger.Error(err)
+		return err
+	}
+
+	return nil
+}
+
 func (c *Client) Login(key *secp256k1.PrivateKey) (string, string, error) {
 	sessionID, payload, err := c.beginLogin(key)
 	if err != nil {
