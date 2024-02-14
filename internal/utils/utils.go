@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"caminoclient/internal/logger"
 	"encoding/hex"
+	"fmt"
 	"os"
 
 	"github.com/ava-labs/avalanchego/ids"
@@ -38,12 +40,13 @@ func (s Sorting) Less(i, j int) bool {
 
 var UtilsNoLog = UtilsWithLogger{logger: &logger.NoLog}
 
-func NewUtils(logger logger.Logger) *UtilsWithLogger {
-	return &UtilsWithLogger{logger: logger}
+func NewUtils(logger logger.Logger, networkID uint32) *UtilsWithLogger {
+	return &UtilsWithLogger{logger: logger, networkID: networkID}
 }
 
 type UtilsWithLogger struct {
-	logger logger.Logger
+	logger    logger.Logger
+	networkID uint32
 }
 
 func (u *UtilsWithLogger) ReadAndEncodeToHex(filepath string) (string, error) {
@@ -112,6 +115,47 @@ func (u *UtilsWithLogger) GenerateKey(networkID uint32, print bool) (*avax_secp2
 		u.logger.Infof("addr: %s", keyAddrStr)
 	}
 	return key, keyAddrStr, nil
+}
+
+func (u *UtilsWithLogger) ParseKey(keyStr string) (*avax_secp256k1.PrivateKey, string, error) {
+	key := new(avax_secp256k1.PrivateKey)
+	if err := key.UnmarshalText([]byte(keyStr)); err != nil {
+		return nil, "", err
+	}
+	keyAddrStr, err := address.Format("P", constants.GetHRP(u.networkID), key.Address().Bytes())
+	if err != nil {
+		u.logger.Error(err)
+		return nil, "", err
+	}
+	return key, keyAddrStr, nil
+}
+
+func (u *UtilsWithLogger) ParseKeysFromFile(filepath string) ([]*avax_secp256k1.PrivateKey, []string, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		u.logger.Error(err)
+		return nil, nil, err
+	}
+	defer file.Close()
+
+	keys := []*avax_secp256k1.PrivateKey{}
+	keysAddresses := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		key, keyAddr, err := u.ParseKey(fmt.Sprintf("\"%s\"", scanner.Text()))
+		if err != nil {
+			u.logger.Error(err)
+			return nil, nil, err
+		}
+		keys = append(keys, key)
+		keysAddresses = append(keysAddresses, keyAddr)
+	}
+
+	if err := scanner.Err(); err != nil {
+		u.logger.Error(err)
+		return nil, nil, err
+	}
+	return keys, keysAddresses, nil
 }
 
 func (u *UtilsWithLogger) SignPublicKey(key *avax_secp256k1.PrivateKey, print bool) (signature string, message string, err error) {

@@ -92,3 +92,70 @@ func (c *Client) Spend(
 
 	return baseTx.Ins, baseTx.Outs, err
 }
+
+// func (c *Client) SpendT(
+// 	ctx context.Context,
+// 	networkID uint32,
+// 	from ids.ShortID,
+// 	to ids.ShortID,
+// 	amountToLock uint64,
+// 	amountToUnlock uint64,
+// 	amountToBurn uint64,
+// 	lockMode locked.State,
+// 	options ...rpc.Option,
+// ) ([]*avax.TransferableInput, []*avax.TransferableOutput, error) {
+// 	fromAddr, err := address.Format("T", constants.GetHRP(networkID), from[:])
+// 	if err != nil {
+// 		c.logger.Error(err)
+// 		return nil, nil, err
+// 	}
+// 	toAddr, err := address.Format("T", constants.GetHRP(networkID), to[:])
+// 	if err != nil {
+// 		c.logger.Error(err)
+// 		return nil, nil, err
+// 	}
+
+// 	var changeOwner platformapi.Owner
+// 	if amountToUnlock > 0 {
+// 		changeOwner = platformapi.Owner{
+// 			Addresses: []string{fromAddr},
+// 			Threshold: 1,
+// 		}
+// 	}
+
+// 	type Spend2Reply struct {
+// 		BaseTx string `json:"baseTx"`
+// 	}
+// 	res := &Spend2Reply{}
+// 	if err := c.tRequester.SendRequest(ctx, "touristicvm.spend2", &touristicvm.SpendArgs{
+// 		JSONFromAddrs: api.JSONFromAddrs{
+// 			From: []string{fromAddr},
+// 		},
+// 		To: platformapi.Owner{
+// 			Threshold: 1,
+// 			Addresses: []string{toAddr},
+// 		},
+// 		Change:         changeOwner,
+// 		AmountToLock:   json.Uint64(amountToLock),
+// 		AmountToUnlock: json.Uint64(amountToUnlock),
+// 		AmountToBurn:   json.Uint64(amountToBurn),
+// 		LockMode:       byte(lockMode),
+// 		Encoding:       formatting.Hex,
+// 	}, res, options...); err != nil {
+// 		c.logger.Error(err)
+// 		return nil, nil, err
+// 	}
+
+// 	baseTxBytes, err := formatting.Decode(formatting.Hex, res.BaseTx)
+// 	if err != nil {
+// 		c.logger.Error(err)
+// 		return nil, nil, err
+// 	}
+// 	baseTx := &tTxs.BaseTx{}
+// 	if _, err := tTxs.Codec.Unmarshal(baseTxBytes, baseTx); err != nil {
+// 		c.logger.Error(err)
+// 		return nil, nil, err
+// 	}
+
+// 	return baseTx.Ins, baseTx.Outs, err
+// }

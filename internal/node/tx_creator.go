@@ -275,6 +275,154 @@ func (c *Client) VoteTx(
 	return tx, nil
 }
 
+// func (tc *TxCreator) TLockTx(key *secp256k1.PrivateKey, amtToLock uint64) (*tTxs.Tx, error) {
+// 	tc.logger.Info("Creating T-Chain LockTx...")
+
+// 	ins, outs, _, _, err := tc.client.T.SpendWithWrapper(
+// 		context.Background(),
+// 		key.Address(),
+// 		ids.ShortEmpty,
+// 		key.Address(),
+// 		amtToLock, getNetworkVMParams(tc.networkID).TxFee,
+// 		tLocked.StateLocked,
+// 		pAPI.Owner{},
+// 	)
+// 	if err != nil {
+// 		tc.logger.Error(err)
+// 		return nil, err
+// 	}
+
+// 	utx := &tTxs.LockMessengerFundsTx{
+// 		BaseTx: tTxs.BaseTx{BaseTx: avax.BaseTx{
+// 			NetworkID:    tc.networkID,
+// 			BlockchainID: tc.tChainID,
+// 			Ins:          ins,
+// 			Outs:         outs,
+// 		}},
+// 	}
+// 	signers := make([][]*secp256k1.PrivateKey, len(utx.Ins))
+// 	for i := range signers {
+// 		signers[i] = []*secp256k1.PrivateKey{key}
+// 	}
+
+// 	avax.SortTransferableInputsWithSigners(utx.Ins, signers)
+// 	avax.SortTransferableOutputs(utx.Outs, tTxs.Codec)
+// 	tx, err := tTxs.NewSigned(utx, tTxs.Codec, signers)
+// 	if err != nil {
+// 		tc.logger.Error(err)
+// 		return nil, err
+// 	}
+// 	txEncodedBytes, err := formatting.Encode(formatting.Hex, tx.Bytes())
+// 	if err != nil {
+// 		tc.logger.Error(err)
+// 		return nil, err
+// 	}
+// 	tc.logger.Info(txEncodedBytes)
+// 	tc.logger.Infof("txID: %s", tx.ID())
+// 	return tx, nil
+// }
+
+// func (tc *TxCreator) TCashOutTx(cheque *tTxs.SignedCheque) (*tTxs.Tx, error) {
+// 	tc.logger.Info("Creating T-Chain TCashOutTx...")
+
+// 	ins, outs, _, _, err := tc.client.T.SpendWithWrapper(
+// 		context.Background(),
+// 		cheque.Issuer,
+// 		cheque.Agent,
+// 		cheque.Beneficiary,
+// 		cheque.Amount, 0,
+// 		tLocked.StateUnlocked,
+// 		pAPI.Owner{},
+// 	)
+// 	if err != nil {
+// 		tc.logger.Error(err)
+// 		return nil, err
+// 	}
+
+// 	utx := &tTxs.CashoutChequeTx{
+// 		BaseTx: tTxs.BaseTx{BaseTx: avax.BaseTx{
+// 			NetworkID:    tc.networkID,
+// 			BlockchainID: tc.tChainID,
+// 			Ins:          ins,
+// 			Outs:         outs,
+// 		}},
+// 		Cheque: *cheque,
+// 	}
+
+// 	avax.SortTransferableInputs(utx.Ins)
+// 	avax.SortTransferableOutputs(utx.Outs, tTxs.Codec)
+// 	tx, err := tTxs.NewSigned(utx, tTxs.Codec, nil)
+// 	if err != nil {
+// 		tc.logger.Error(err)
+// 		return nil, err
+// 	}
+
+// 	txEncodedBytes, err := formatting.Encode(formatting.Hex, tx.Bytes())
+// 	if err != nil {
+// 		tc.logger.Error(err)
+// 		return nil, err
+// 	}
+// 	tc.logger.Info(txEncodedBytes)
+// 	tc.logger.Infof("txID: %s", tx.ID())
+// 	return tx, nil
+// }
+
+// func (tc *TxCreator) CreateCheque(issuerKey *secp256k1.PrivateKey, agent, beneficiary ids.ShortID, amount, serialID uint64, print bool) (*tTxs.SignedCheque, error) {
+// 	unsignedCheque := tTxs.Cheque{
+// 		Issuer:      issuerKey.Address(),
+// 		Agent:       agent,
+// 		Beneficiary: beneficiary,
+// 		Amount:      amount,
+// 		SerialID:    serialID,
+// 	}
+// 	signature, err := issuerKey.Sign(unsignedCheque.BuildMsgToSign())
+// 	if err != nil {
+// 		tc.logger.Error(err)
+// 		return nil, err
+// 	}
+// 	credential := &secp256k1fx.Credential{
+// 		Sigs: make([][65]byte, 1),
+// 	}
+// 	copy(credential.Sigs[0][:], signature)
+// 	if print {
+// 		encodedSignature, err := formatting.Encode(formatting.Hex, signature)
+// 		if err != nil {
+// 			tc.logger.Error(err)
+// 			return nil, err
+// 		}
+// 		issuer, err := address.Format("T", tc.hrp, unsignedCheque.Issuer.Bytes())
+// 		if err != nil {
+// 			tc.logger.Error(err)
+// 			return nil, err
+// 		}
+// 		beneficiary, err := address.Format("T", tc.hrp, unsignedCheque.Beneficiary.Bytes())
+// 		if err != nil {
+// 			tc.logger.Error(err)
+// 			return nil, err
+// 		}
+
+// 		tc.logger.Infof(`cheque: {
+// 			issuer: %s,
+// 			agent: %s,
+// 			beneficiary: %s,
+// 			amount: %d,
+// 			serialID: %d,
+// 			signature: %s,
+// 		}`,
+// 			issuer,
+// 			unsignedCheque.Agent.String(),
+// 			beneficiary,
+// 			unsignedCheque.Amount,
+// 			unsignedCheque.SerialID,
+// 			encodedSignature,
+// 		)
+// 	}
+// 	return &tTxs.SignedCheque{
+// 		Cheque: unsignedCheque,
+// 		Auth:   credential,
+// 	}, nil
+// }
+
 func getNetworkVMParams(networkID uint32) *genesis.Params {
 	switch networkID {
 	case constants.CaminoID:

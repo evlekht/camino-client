@@ -20,18 +20,20 @@ func NewClient(nodeURI string, logger logger.Logger) (*Client, error) {
 		return nil, err
 	}
 
-	// feeKeyAddrStr, err := address.Format("P", hrp, feeKey.Address().Bytes())
-	// if err != nil {
-	// 	logger.Error(err)
-	// 	return nil, err
-	// }
-	// logger.Infof("feeKey: %s : %s : %s\n\n", feeKey.String(), feeKey.Address().String(), feeKeyAddrStr)
+	tChainID := ids.ID{}
+	for _, blockchain := range nodeCfg.Blockchains {
+		if blockchain.Name == "T-Chain" {
+			tChainID = blockchain.ID
+			break
+		}
+	}
 
 	return &Client{
 		client: client,
 		logger: logger,
-		utils:  utils.NewUtils(logger),
+		utils:  utils.NewUtils(logger, uint32(nodeCfg.NetworkID)),
 
+		tChainID:  tChainID,
 		networkID: uint32(nodeCfg.NetworkID),
 		hrp:       constants.GetHRP(uint32(nodeCfg.NetworkID)),
 	}, nil
@@ -42,6 +44,7 @@ type Client struct {
 	logger logger.Logger
 	utils  *utils.UtilsWithLogger
 
+	tChainID  ids.ID
 	networkID uint32
 	hrp       string
 }

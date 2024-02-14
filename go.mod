@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/ava-labs/avalanchego v1.9.16
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0
+	github.com/google/uuid v1.1.2
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.12.0
 	go.uber.org/zap v1.24.0

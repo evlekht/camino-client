@@ -2,8 +2,10 @@ package playground
 
 import (
 	"caminoclient/internal/logger"
+	"caminoclient/internal/matrix"
 	"caminoclient/internal/node"
 
+	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
 )
 
@@ -13,6 +15,13 @@ const (
 	unchainedNode  = "https://kopernikus.unchained.camino.network"
 	// columbusNode   = ""
 	caminoNode = "https://api.camino.network"
+
+	matrixDebug  = "http://localhost:8008"
+	matrixLocal  = "http://localhost:8008"
+	matrixC4T    = "https://matrix.chain4travel.com"
+	matrixCamino = "https://matrix.camino.network"
+
+	appServiceAccessToken = "wfghWEGh3wgWHEf3478sHFWE"
 
 	caminoFeeKeyStr = "\"PrivateKey-2bMrxpyN24b6BsiTjRDw3h7w7nC75ecZ5vkSyrDksxthvxXQ8o\""
 
@@ -89,4 +98,30 @@ func CaminoClient(logger logger.Logger) *node.Client {
 	)
 	logger.NoError(err)
 	return txc
+}
+
+// Matrix client
+
+func MatrixDebug(logger logger.Logger) *matrix.Client {
+	client, err := matrix.NewClient(matrixLocal, appServiceAccessToken, logger, constants.KopernikusID)
+	logger.NoError(err)
+	return client
+}
+
+func MatrixLocal(logger logger.Logger) *matrix.Client {
+	client, err := matrix.NewClient(matrixLocal, appServiceAccessToken, logger, constants.KopernikusID)
+	logger.NoError(err)
+	return client
+}
+
+func MatrixChain4Travel(logger logger.Logger) *matrix.Client {
+	client, err := matrix.NewClient(matrixC4T, "", logger, constants.KopernikusID)
+	logger.NoError(err)
+	return client
+}
+
+func MatrixCamino(logger logger.Logger) *matrix.Client {
+	client, err := matrix.NewClient(matrixCamino, "v44O3RcIglDKi9BwYI8sNLtrpxHyvLDxXBCqH8CRWpXEC4c3rf", logger, constants.KopernikusID)
+	logger.NoError(err)
+	return client
 }
