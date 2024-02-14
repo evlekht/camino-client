@@ -16,20 +16,32 @@ import (
 	platformapi "github.com/ava-labs/avalanchego/vms/platformvm/api"
 	"github.com/ava-labs/avalanchego/vms/platformvm/locked"
 	pTxs "github.com/ava-labs/avalanchego/vms/platformvm/txs"
+	"github.com/ava-labs/coreth/ethclient"
+	"github.com/ava-labs/coreth/plugin/evm"
 )
 
 // newClient returns a Client for interacting with the P Chain endpoint
-func NewClient(uri string, logger logger.Logger) Client {
-	return Client{
+func NewClient(uri string, logger logger.Logger) (*Client, error) {
+	ethClient, err := ethclient.Dial(uri)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return &Client{
 		P:          platformvm.NewClient(uri),
+		C:          evm.NewClient(uri, "C"),
+		CETH:       ethClient,
 		pRequester: rpc.NewEndpointRequester(uri + "/ext/P"),
 		logger:     logger,
-	}
+	}, nil
 }
 
 // Client implementation for interacting with the P Chain endpoint
 type Client struct {
 	P          platformvm.Client
+	C          evm.Client
+	CETH       ethclient.Client
 	pRequester rpc.EndpointRequester
 	logger     logger.Logger
 }
@@ -37,7 +49,7 @@ type Client struct {
 // TODO update caminogo p-spend
 // TODO get spendT from app-service
 // TODO probably remove package after that
-func (c *Client) Spend(
+func (c *Client) SpendP(
 	ctx context.Context,
 	networkID uint32,
 	from ids.ShortID,

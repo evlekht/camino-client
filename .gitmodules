@@ -1,3 +1,7 @@
 [submodule "caminogo"]
 	path = caminogo
 	url = git@github.com:chain4travel/caminogo.git
+
+[submodule "caminoethvm"]
+	path = caminoethvm
+	url = git@github.com:chain4travel/caminoethvm.git
